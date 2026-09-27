@@ -1,0 +1,5 @@
+﻿import { Code2, Server, PanelsTopLeft, Smartphone, Database, Cloud, ShieldCheck, ArrowUpRight } from 'lucide-react';
+import { skills } from '../data/portfolio';
+import { SectionTitle, SkillBadge } from './Shared';
+const icons={code:Code2,server:Server,layout:PanelsTopLeft,phone:Smartphone,database:Database,cloud:Cloud,shield:ShieldCheck};
+export default function Skills(){return <section id="skills" className="section"><SectionTitle number="02" label="TECH STACK" title={<>The right tools.<br/><span className="text-muted">Thoughtfully connected.</span></>} description="From the first line of code to the final production deployment."/><div className="skills-grid">{skills.map(group=>{const Icon=icons[group.icon];return <article className="skill-group reveal" key={group.name}><div className="skill-title"><Icon size={22}/><h3>{group.name}</h3><ArrowUpRight size={15}/></div><div className="badge-group">{group.items.map(item=><SkillBadge key={item}>{item}</SkillBadge>)}</div></article>})}</div></section>}

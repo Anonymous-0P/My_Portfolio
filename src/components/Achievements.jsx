@@ -1,0 +1,5 @@
+﻿import { ArrowUpRight, Mic, Users, Globe, Terminal, Sparkles } from 'lucide-react';
+import { achievements } from '../data/portfolio';
+import { SectionTitle } from './Shared';
+const icons=[Mic,Mic,Terminal,Users,Globe];
+export default function Achievements(){return <section id="achievements" className="section achievements"><SectionTitle number="06" label="BEYOND CODE" title={<>Great things happen<br/><span className="text-muted">when knowledge is shared.</span></>} description="Leading communities. Sharing experiences. Building what comes next."/><div className="achievement-grid">{achievements.map((a,i)=>{const Icon=icons[i];return <article className={`achievement-card reveal achievement-${i}`} key={a.title}><div className="achievement-top"><Icon size={23}/><span>{a.label}</span><ArrowUpRight size={17}/></div><h3>{a.title}</h3><p>{a.text}</p><span className="achievement-number">0{i+1}</span></article>})}<div className="community-note reveal"><Sparkles size={28}/><p>Better together.<br/><span>Always learning.</span></p></div></div></section>}

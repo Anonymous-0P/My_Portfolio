@@ -1,0 +1,10 @@
+﻿import { useEffect, useRef, useState } from 'react';
+import { ArrowUpRight, Menu, X } from 'lucide-react';
+import gsap from 'gsap';
+import { navigation } from '../data/portfolio';
+export default function Navbar() {
+ const [active,setActive] = useState('home'); const [open,setOpen] = useState(false); const [scrolled,setScrolled] = useState(false); const panel = useRef(); const toggle = useRef();
+ useEffect(() => { const onScroll=()=>setScrolled(window.scrollY>24); onScroll(); window.addEventListener('scroll',onScroll,{passive:true}); const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting) setActive(entry.target.id);});},{rootMargin:'-15% 0px -60% 0px',threshold:0}); navigation.forEach(n=>{const el=document.getElementById(n.toLowerCase()); if(el)observer.observe(el);}); return()=>{window.removeEventListener('scroll',onScroll);observer.disconnect();}; },[]);
+ useEffect(()=>{if(!open)return; const ctx=gsap.context(()=>{if(!matchMedia('(prefers-reduced-motion: reduce)').matches)gsap.from('.nav-link',{y:-10,opacity:0,stagger:.035,duration:.3});},panel); const key=e=>{if(e.key==='Escape'){setOpen(false);toggle.current?.focus();}};document.addEventListener('keydown',key);return()=>{ctx.revert();document.removeEventListener('keydown',key);};},[open]);
+ return <header className={`navbar ${scrolled?'scrolled':''}`}><a href="#home" className="logo" aria-label="Prakash Karekar, home">PK<span>.</span></a><nav id="navigation" ref={panel} aria-label="Main navigation" className={open?'nav-open':''}>{navigation.map(n=><a key={n} className={`nav-link ${active===n.toLowerCase()?'active':''}`} aria-current={active===n.toLowerCase()?'location':undefined} href={`#${n.toLowerCase()}`} onClick={()=>setOpen(false)}>{n}</a>)}</nav><a href="#contact" className="nav-cta">Let's Talk <ArrowUpRight size={15}/></a><button ref={toggle} className="menu-toggle" aria-label={open?'Close navigation':'Open navigation'} aria-expanded={open} aria-controls="navigation" onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button></header>;
+}
