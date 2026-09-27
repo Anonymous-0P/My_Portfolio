@@ -1,0 +1,2 @@
+﻿import { GraduationCap } from 'lucide-react';
+export default function Education(){return <div className="education-block reveal"><div className="eyebrow">05 / EDUCATION</div><div className="education-card"><GraduationCap size={30}/><div><h3>B.E. Computer Science<br/>&amp; Engineering</h3><p>Angadi Institute of Technology and Management</p></div><div className="cgpa"><strong>8.7<span>/10</span></strong><small>CGPA</small></div></div></div>}

@@ -1,0 +1,51 @@
+import { chromium } from '@playwright/test';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { profile, skills, experience, projects, certifications, achievements } from '../src/data/portfolio.js';
+const browser = await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+await mkdir('.playwright',{recursive:true});
+const page=await browser.newPage({viewport:{width:1440,height:1000}});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+try {
+ await page.goto('http://localhost:5173',{waitUntil:'networkidle'});
+ await page.waitForTimeout(3500);
+ await page.screenshot({path:'.playwright/desktop.png'});
+ for(const width of [1440,1024,768,390,320]){
+  await page.setViewportSize({width,height:900});
+  await page.evaluate(()=>window.scrollTo(0,0));
+  await page.waitForTimeout(400);
+  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
+  if(overflow)console.log(await page.locator("body *").evaluateAll(els=>els.filter(e=>e.getBoundingClientRect().right>innerWidth+1).map(e=>({tag:e.tagName,cls:e.className,right:e.getBoundingClientRect().right})).slice(0,20))); if(overflow)throw new Error(`Horizontal overflow at ${width}px`);
+  console.log(`Layout ${width}px: OK`);
+ }
+ await page.setViewportSize({width:390,height:844});
+ await page.getByRole('button',{name:'Open navigation'}).click();
+ await page.getByRole('navigation').getByRole('link',{name:'Projects',exact:true}).click();
+ await page.waitForTimeout(1600);
+ if(await page.getByRole('button',{name:'Open navigation'}).getAttribute('aria-expanded')!=='false')throw new Error('Mobile menu did not close');
+ await page.getByRole('button',{name:'Open navigation'}).click();
+ await page.keyboard.press('Escape');
+ if(await page.getByRole('button',{name:'Open navigation'}).getAttribute('aria-expanded')!=='false')throw new Error('Escape did not close menu');
+ console.log('Mobile navigation and Escape: OK');
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('http://localhost:5173',{waitUntil:'networkidle'});
+ await page.screenshot({path:'.playwright/mobile.png',fullPage:true});
+ const counters=await page.locator('.counter').allTextContents();
+ if(counters.join(',')!=='1,10,000,14,12')throw new Error(`Counters: ${counters}`);
+ if(await page.locator('.loader').isVisible())throw new Error('Reduced-motion loader visible');
+ console.log('Reduced-motion content and counters: OK');
+ const anchors=await page.locator('a[href^="#"]').evaluateAll(links=>links.map(a=>a.getAttribute('href')).filter(h=>!document.querySelector(h)));
+ if(anchors.length)throw new Error(`Invalid anchors: ${anchors}`);
+ console.log('Section anchors: OK');
+ await page.setViewportSize({width:1440,height:1000});
+ await page.screenshot({path:'.playwright/full-desktop.png',fullPage:true});
+ const esc=s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+ const resume=`<!doctype html><html><head><meta charset="UTF-8"><style>@page{size:A4;margin:17mm}body{font:10px Arial,sans-serif;color:#26323d;line-height:1.45}h1{font-size:28px;letter-spacing:-1px;margin:0;color:#112c38}h2{font-size:12px;letter-spacing:1px;border-bottom:1px solid #cbd7dc;padding-bottom:5px;margin-top:19px;color:#1d6274}h3{font-size:11px;margin:12px 0 3px}p{margin:5px 0}ul{padding-left:16px;margin:6px 0}li{margin:3px 0}a{color:#1d6274;text-decoration:none}.contact{font-size:9px;color:#60727b}.date{float:right;font-size:9px;color:#6b7780}.item{break-inside:avoid}.stack{font-size:9px;color:#60727b}</style></head><body><h1>${profile.name}</h1><p>SOFTWARE DEVELOPER</p><p class="contact">${profile.location} · ${profile.email} · linkedin.com/in/prakashkarekar</p><h2>PROFILE</h2><p>${profile.description}</p><h2>EXPERIENCE</h2>${experience.map(e=>`<div class="item"><h3>${e.role} <span class="date">${e.date}</span></h3><p>${e.company}</p><ul>${e.bullets.map(b=>`<li>${esc(b)}</li>`).join('')}</ul><p class="stack">${e.stack.join(' · ')}</p></div>`).join('')}<h2>SELECTED PROJECTS</h2>${projects.map(p=>`<div class="item"><h3>${p.title}</h3><p>${p.description}</p><p class="stack">${p.stack.join(' · ')} | <a href="${p.url}">${p.domain}</a></p></div>`).join('')}<h2>TECHNICAL SKILLS</h2>${skills.map(s=>`<p><b>${s.name}:</b> ${s.items.join(', ')}</p>`).join('')}<h2>EDUCATION</h2><p><b>B.E. Computer Science & Engineering</b> — CGPA 8.7 / 10</p><p>Angadi Institute of Technology and Management</p><h2>CERTIFICATIONS</h2><p>${certifications.join(' · ')}</p><h2>LEADERSHIP & ACHIEVEMENTS</h2><ul>${achievements.map(a=>`<li>${a.text}</li>`).join('')}</ul></body></html>`;
+ await page.setContent(resume);await page.pdf({path:'public/Prakash-Karekar-Resume.pdf',format:'A4',printBackground:true});
+ console.log('Résumé PDF generated');
+ await page.setViewportSize({width:1200,height:630});
+ await page.goto('http://localhost:5173/social-card.svg');
+ await page.screenshot({path:'public/social-card.png'});
+ console.log('Social sharing PNG generated');
+ if(errors.length)throw new Error(errors.join('\n'));
+ console.log('No browser runtime errors. All checks passed.');
+} finally { await browser.close(); }

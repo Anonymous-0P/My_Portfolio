@@ -1,0 +1,1 @@
+﻿export default function Loader(){return <div className="loader" aria-hidden="true"><span className="logo">PK<span>.</span></span><div className="loader-track"><div className="loader-progress"/></div><span className="loader-caption">THOUGHTFULLY BUILT.</span></div>}
